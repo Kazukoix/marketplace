@@ -49,15 +49,17 @@ app.get("/shoes", (req, res) =>{
 
 
 
-//POST FUNCTION = ADDING DATA
+//POST FUNCTION = ADDING DATA (USING POSTMAN APP)
 app.post("/shoes", (req, res) =>{
   console.log("Received POST request:", req.body); // Debugging line
   const q = "INSERT INTO shoes (`id`, `prod_name`, `prod_description`, `image`) VALUES(?)";
+
+  //This request the body and the inside of the body from postman app and gets it to add to the query
   const values = [
-    "9",
-    "prod8",
-    "prod8_desc",
-    "item8.png"
+    req.body.id,
+    req.body.prod_name,
+    req.body.prod_description,
+    req.body.image
   ];
     //We use db here to establish connection with the database and post the newly added items
   db.query(q,[values], (err,data) =>{
@@ -69,26 +71,24 @@ app.post("/shoes", (req, res) =>{
   })
 })
 
+//FETCH FUNCTION ADDING IN TABLE SHOES
+fetch("http://localhost:8888/shoes", {
+  method: "POST",
+  headers: {
+      "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+  }),
+})
+.then(response => response.json())
+.then(data => console.log("Response:", data))
+.catch(error => console.error("Error:", error));
 
 
-// app.listen(8888, () => {
-//   console.log("connected to backend")
-// })
 
-// fetch("http://localhost:8888/shoes", {
-//   method: "POST",
-//   headers: {
-//       "Content-Type": "application/json",
-//   },
-//   body: JSON.stringify({
-//       id: "007",
-//       prod_name: "prod8",
-//       prod_description: "prod3_desc",
-//       image: "prod3.png"
-//   }),
-// })
-// .then(response => response.json())
-// .then(data => console.log("Response:", data))
-// .catch(error => console.error("Error:", error));
 
+
+app.listen(8888, () => {
+  console.log("connected to backend")
+})
 
