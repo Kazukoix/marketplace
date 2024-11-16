@@ -12,7 +12,7 @@ function App() {
         {/*Inside here is where we will create routes */}
 
         <Routes>
-          {/*The elements insides of each jsx route. */}
+          {/*The components insides of each jsx route. */}
           <Route path = "/" element = {<Shoes/>}> </Route>
           <Route path = "/add" element = {<Add/>}> </Route>
           <Route path = "/update" element = {<Update/>}> </Route>
