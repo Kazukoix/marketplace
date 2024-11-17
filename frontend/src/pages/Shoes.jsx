@@ -31,6 +31,8 @@ const Shoes = () =>{
 
   //Once the state gets updated  useEffect() will get executed.
   return (
+
+    //This will print out the data from the database using DOM
     <div>
       <h1>MarketPlace</h1>
       <div className='shoes'>
