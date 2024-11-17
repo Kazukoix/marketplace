@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import {useState} from 'react';
 import axios from 'axios';
 
+
 const Shoes = () =>{
   
   //useState statement accepts or returns the current state (shoes) (example: the cart is at 0 atm. = current state) 
@@ -13,13 +14,12 @@ const Shoes = () =>{
 
   //useEffect will allow the "const Shoes" to have a life cycle method in one single API. (componentDidMount, componentDidUpdate... etc.)
   useEffect(() => {
-
     //async function ensures that our function will return a "promise"
-    //
     const fetchAllShoes = async()=>{
       try{
-        const res = await axios.get("http://localhost:8800/shoes");
-        console.log(res);
+        //tries to connect to mysql shoes table
+        const res = await axios.get("http://localhost:8888/shoes");
+        setShoes (res.data)
         //if try condition doesnt run, catch statement will run
       } catch (err) {
           console.log(err);
@@ -31,7 +31,22 @@ const Shoes = () =>{
 
   //Once the state gets updated  useEffect() will get executed.
   return (
-    <div>Shoes</div>
+    <div>
+      <h1>MarketPlace</h1>
+      <div className='shoes'>
+        {shoes.map((shoe) =>(
+          <div className='shoe' key={shoe.id}>
+          {shoe.image && <img src={shoe.image} alt={shoe.prod_name}/>}
+          <h2> {shoe.prod_name} </h2>
+          <p> {shoe.prod_description} </p>
+          <span> {shoe.price} </span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+      
+
   )
 }
 
