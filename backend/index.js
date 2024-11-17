@@ -5,14 +5,8 @@ import cors from "cors";
 const app = express();
 
 // Middleware to parse JSON request bodies
-app.use(express.json());
-app.use(cors()); // Enable CORS for all routes
-
-
-app.get("/test", (req, res) => {
-  console.log("GET request received");
-  res.json({ message: "GET request working" });
-});
+app.use(express.json()); //Enables parsing incoming requests with JSON payload.
+app.use(cors()); // Enable CORS for all routes (our frontend use uses a different route vs to our backend)
 
 //connecting mysql
 const db = mysql.createConnection({
@@ -71,18 +65,23 @@ app.post("/shoes", (req, res) =>{
   })
 })
 
-//FETCH FUNCTION ADDING IN TABLE SHOES
-fetch("http://localhost:8888/shoes", {
-  method: "POST",
-  headers: {
-      "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-  }),
-})
-.then(response => response.json())
-.then(data => console.log("Response:", data))
-.catch(error => console.error("Error:", error));
+
+//code below is just a simulation of POST request to /shoes
+//Sends a JSON payload to the backend.
+//Logs the response from the backend or catches errors.
+
+// //FETCH FUNCTION ADDING IN TABLE SHOES
+// fetch("http://localhost:8888/shoes", {
+//   method: "POST",
+//   headers: {
+//       "Content-Type": "application/json",
+//   },
+//   body: JSON.stringify({
+//   }),
+// })
+// .then(response => response.json())
+// .then(data => console.log("Response:", data))
+// .catch(error => console.error("Error:", error));
 
 
 
