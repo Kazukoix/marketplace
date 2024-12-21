@@ -46,14 +46,15 @@ app.get("/shoes", (req, res) =>{
 //POST FUNCTION = ADDING DATA (USING POSTMAN APP)
 app.post("/shoes", (req, res) =>{
   console.log("Received POST request:", req.body); // Debugging line
-  const q = "INSERT INTO shoes (`id`, `prod_name`, `prod_description`, `image`) VALUES(?)";
+  const q = "INSERT INTO shoes (`id`, `prod_name`, `prod_description`, `image`, `price`) VALUES(?)";
 
   //This request the body and the inside of the body from postman app and gets it to add to the query
   const values = [
     req.body.id,
     req.body.prod_name,
     req.body.prod_description,
-    req.body.image
+    req.body.image,
+    req.body.price
   ];
     //We use db here to establish connection with the database and post the newly added items
   db.query(q,[values], (err,data) =>{
