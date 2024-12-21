@@ -15,7 +15,6 @@
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "mysql": "^2.18.1",
-    "nodemon": "^3.1.7",
-    "styled-components": "^6.1.13"
+    "nodemon": "^3.1.7"
   }
 }
