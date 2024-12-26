@@ -1,0 +1,1 @@
+export { default as ShowCaseOne } from './SHOWCASE-TOP.png';

@@ -1,0 +1,14 @@
+.front-ad {
+  display: flex;
+  justify-content: center; /* Centers the image horizontally */
+  align-items: center;     /* Centers the image vertically */
+  width: 100%;             /* Takes the full width of the container */
+  height: auto;            /* Adjusts height to fit the image aspect ratio */
+  margin: 0 auto;          /* Centers the container if needed */
+}
+
+.sole-box {
+  max-width: 100%;         /* Ensures the image doesn't overflow */
+  height: auto;            /* Maintains the image's aspect ratio */
+  object-fit: contain;     /* Adjusts the image withou*/
+}

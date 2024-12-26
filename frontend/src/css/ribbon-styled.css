@@ -1,0 +1,39 @@
+.ribbon-container{
+  display: flex; 
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  text-align: center;
+}
+
+.offers-bar{
+  background-color: black;
+  margin-bottom: 5px ;
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+.ribbon{
+  display: flex;
+  gap: 65px;
+  align-items: center;
+  justify-content: center; 
+  text-align: center;
+}
+
+.search-box{
+  padding-left: 10px;
+  width: 608px;
+  height: 38px;
+}
+
+.icons{
+  display: flex;
+  gap: 20px;
+}
+
+
+.sole-box:hover {
+  cursor: pointer;
+}

@@ -1,8 +1,11 @@
 import express from "express";
 import mysql from "mysql";
 import cors from "cors";
-
+import path from "path";
+import { fileURLToPath } from "url";
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware to parse JSON request bodies
 app.use(express.json()); //Enables parsing incoming requests with JSON payload.
@@ -16,13 +19,15 @@ const db = mysql.createConnection({
   database: "marketplace"
 
 
-
 });
 //Requesting and responding from mysql
 app.get("/", (req, res) =>{
   //response will send a json file to see if we received a request
   res.json("this is the backend")
 })
+
+//getting the images
+app.use("/images", express.static(path.join(__dirname, "public/product_images")));
 
 //Getting the data from mysql shoes table
 app.get("/shoes", (req, res) =>{
@@ -41,6 +46,31 @@ app.get("/shoes", (req, res) =>{
   })
 })
 
+app.delete("/shoes/:id", (req, res) =>{
+  const shoeId = req.params.id;
+  const q= "DELETE FROM shoes WHERE id= ?"
+  db.query(q,[shoeId], (err,data) =>{
+    if(err) return res.json(err);
+    return res.json("Data Deleted!");
+  })
+})
+
+app.put("/shoes/:id", (req, res) => {
+  const shoeId = req.params.id;
+  const q =
+    "UPDATE shoes SET `prod_name`=?, `prod_description`=?, `image`=?, `price`=? WHERE id=?";
+  const values = [
+    req.body.prod_name,
+    req.body.prod_description,
+    req.body.image,
+    req.body.price,
+  ];
+
+  db.query(q, [...values, shoeId], (err, data) => {
+    if (err) return res.json(err);
+    return res.json("Data Updated!");
+  });
+});
 
 
 //POST FUNCTION = ADDING DATA (USING POSTMAN APP)
@@ -65,25 +95,6 @@ app.post("/shoes", (req, res) =>{
     return res.json("Data added!");
   })
 })
-
-
-//code below is just a simulation of POST request to /shoes
-//Sends a JSON payload to the backend.
-//Logs the response from the backend or catches errors.
-
-// //FETCH FUNCTION ADDING IN TABLE SHOES
-// fetch("http://localhost:8888/shoes", {
-//   method: "POST",
-//   headers: {
-//       "Content-Type": "application/json",
-//   },
-//   body: JSON.stringify({
-//   }),
-// })
-// .then(response => response.json())
-// .then(data => console.log("Response:", data))
-// .catch(error => console.error("Error:", error));
-
 
 
 

@@ -1,0 +1,12 @@
+.nav-list{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  gap: 35px;
+}
+
+.nav-list li a {
+  text-decoration: none;
+  color: black;
+}
