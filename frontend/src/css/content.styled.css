@@ -1,0 +1,113 @@
+main{
+  background-color: white;
+  display: block;
+  width: 100%;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+a{
+  color: black;
+}
+
+.bread-crumb {
+  max-width: 0px 10px;
+  display: flex;
+  gap: 10px;
+  font-size: 1.2rem;
+}
+
+.content-name{
+  font-weight: 500;
+  font-size: 1.4rem;
+}
+
+.home-link{
+  text-decoration: none;
+}
+
+.content{
+  display: flex;
+  height: auto;
+  align-items: center;
+  flex-direction: column;
+  width: 80;
+  align-content: center;
+  margin: 0px 50px;
+}
+
+
+
+.content-name{
+  margin: 10px 0;
+}
+
+.content-2 {
+  display: flex;
+  justify-content: space-between; /* Push elements to opposite sides */
+  align-items: flex-start; /* Align items to the top */
+  width: 100%; /* Ensure it takes the full width of the parent */
+  gap:20px;
+}
+
+.side-bar {
+  flex: 0 0 20%; /* Set a fixed width for the sidebar (20% of the parent) */
+  max-width: 300px; /* Optional maximum width */
+}
+
+.shoes-container {
+  flex: 1; /* Allow it to grow and fill remaining space */
+  margin-left: 20px; /* Add some space between the two divs */
+}
+
+.shoes-wrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap; /* Add this to enable wrapping */
+  gap: 20px;
+  padding: 20px 10px;
+  overflow: hidden;
+}
+
+
+.shoe-display{
+  width: 200px;
+  user-select: none;
+  display: block;
+  background: rgb(255, 255, 255);
+  padding: 18px;
+  border-radius: 12px;
+  text-align: none;
+  border:  2px solid transparent;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+  transition: 0.2s ease;
+}
+
+.shoe-display:hover{
+  border-color: rgba(99, 97, 97, 0.416);
+}
+
+.shoe-image{
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.filter ul a{
+  text-decoration: none;
+}
+
+.filter ul {
+  list-style: none;
+}
+
+.filter button{
+  background: none;
+  border: none;
+  color: blue;
+  textDecoration: underline;
+  cursor: pointer;
+  padding: 0;
+}

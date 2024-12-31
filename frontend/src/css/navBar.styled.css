@@ -4,6 +4,11 @@
   justify-content: center;
   list-style: none;
   gap: 35px;
+  margin: 20px 0px;
+}
+
+.nav-bar{
+  margin-bottom: 30px;
 }
 
 .nav-list li a {

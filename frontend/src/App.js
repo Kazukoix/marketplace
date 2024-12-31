@@ -1,34 +1,93 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import NavBar from "./pages_components/Home_Ribbon";
-import Shoes from "./pages_components/Shoes";
-import Add from "./pages_components/Add";
+import NavBar from "./pages_components/NavBar";
 import Ribbon from "./pages_components/Ribbon";
-import Update from "./pages_components/Update";
-import Register from "./pages_components/Sign-in";
-import "./css/styles.css";
-import ShowCase from "./pages_components/Front.ad";
-import TopPicks from "./pages_components/Top-picks.comp";
-
+import Shoes from "./pages/Shoes";
+import Add from "./pages/Add";
+import Update from "./pages/Update";
+import Mens from "./pages/Mens";
+import ShoePage from "./pages/ShoePage";
+import StickyLayout from "./pages_components/StickyLayout"; // Import the layout component
+import Register from "./pages/Register";
 
 function App() {
   return (
     <>
-    <Ribbon/>
-    <NavBar/>
-    <ShowCase/>
-    <TopPicks/>
-    <div className="App">
+      <Ribbon />
+      <NavBar />
       <BrowserRouter>
         <Routes>
-          <Route path = "/" element = {<Shoes/>}> </Route>
-          <Route path = "/add" element = {<Add/>}> </Route>
-          <Route path = "/update/:id" element = {<Update/>}> </Route>
-          <Route path = "/register" element = {<Register/>}> </Route>
+          {/* Main Page */}
+          <Route
+            path="/"
+            element={
+              <StickyLayout>
+                <Shoes />
+              </StickyLayout>
+            }
+          />
+
+          {/* Add New Shoe */}
+          <Route
+            path="/add"
+            element={
+              <StickyLayout>
+                <Add />
+              </StickyLayout>
+            }
+          />
+
+          {/* Update Shoe */}
+          <Route
+            path="/update/:id"
+            element={
+              <StickyLayout>
+                <Update />
+              </StickyLayout>
+            }
+          />
+
+          {/* User Registration */}
+          <Route
+            path="/register"
+            element={
+              <StickyLayout>
+                <Register />
+              </StickyLayout>
+            }
+          />
+
+          {/* Mens Shoes */}
+          <Route
+            path="/mens"
+            element={
+              <StickyLayout>
+                <Mens />
+              </StickyLayout>
+            }
+          />
+
+          {/* Individual Shoe Page */}
+          <Route
+            path="/shoe/mens/:id"
+            element={
+              <StickyLayout>
+                <ShoePage />
+              </StickyLayout>
+            }
+          />
+
+          <Route
+            path="/account/create"
+            element={
+              <StickyLayout>
+                <Register />
+              </StickyLayout>
+            }
+          />
+          
         </Routes>
       </BrowserRouter>
-    </div>
     </>
-
   );
 }
 

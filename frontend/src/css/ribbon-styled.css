@@ -10,6 +10,8 @@
 .offers-bar{
   background-color: black;
   margin-bottom: 5px ;
+  margin-top: 0px;
+  
   color: white;
   display: flex;
   justify-content: center;
@@ -20,6 +22,7 @@
   align-items: center;
   justify-content: center; 
   text-align: center;
+  margin: 0px;
 }
 
 .search-box{

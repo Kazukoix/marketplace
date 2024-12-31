@@ -20,17 +20,16 @@ const Ribbon = () =>{
         <input className="search-box" type='text' placeholder='Search'></input>
         <div className="icons">
           <img className="sole-box" src={Profile} alt="sole-box"/>
-          <p>Sign in</p>
+          <a href="http://localhost:3000/account/create" target="_self" rel="noopener noreferrer">
+            <p>Sign in</p>
+          </a>
+
           <img className="sole-box" src={Cart} alt="sole-box" />
         </div>
       </div>
     </div>
     </>
-
-
-      
-
-  )
+  );
 }
 
 export default Ribbon

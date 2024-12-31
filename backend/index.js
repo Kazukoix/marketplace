@@ -46,6 +46,27 @@ app.get("/shoes", (req, res) =>{
   })
 })
 
+app.get("/shoes/size/:size", (req, res) => {
+  const size = req.params.size;
+  const q = "SELECT * FROM shoes WHERE JSON_CONTAINS(size, ?)";
+  db.query(q, [`"${size}"`], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+
+app.get("/shoes/filter/brand", (req, res) => {
+  const { brand } = req.query; // Get the brand filter from query parameters
+  const q = "SELECT * FROM shoes WHERE brand = ?"; // SQL query for filtering by brand
+
+  db.query(q, [brand], (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+
+
+
 app.delete("/shoes/:id", (req, res) =>{
   const shoeId = req.params.id;
   const q= "DELETE FROM shoes WHERE id= ?"
@@ -58,9 +79,12 @@ app.delete("/shoes/:id", (req, res) =>{
 app.put("/shoes/:id", (req, res) => {
   const shoeId = req.params.id;
   const q =
-    "UPDATE shoes SET `prod_name`=?, `prod_description`=?, `image`=?, `price`=? WHERE id=?";
+    "UPDATE shoes SET `prod_name`=?, `brand`=?, `size`=?, `sex`=?, `prod_description`=?, `image`=?, `price`=? WHERE id=?";
   const values = [
     req.body.prod_name,
+    req.body.brand,
+    req.body.size,
+    req.body.sex,
     req.body.prod_description,
     req.body.image,
     req.body.price,
@@ -76,15 +100,18 @@ app.put("/shoes/:id", (req, res) => {
 //POST FUNCTION = ADDING DATA (USING POSTMAN APP)
 app.post("/shoes", (req, res) =>{
   console.log("Received POST request:", req.body); // Debugging line
-  const q = "INSERT INTO shoes (`id`, `prod_name`, `prod_description`, `image`, `price`) VALUES(?)";
+  const q = "INSERT INTO shoes (`id`, `prod_name`, `brand`, `sex`, `prod_description`, `image`, `price`) VALUES(?)";
 
   //This request the body and the inside of the body from postman app and gets it to add to the query
   const values = [
     req.body.id,
     req.body.prod_name,
+    req.body.brand,
+    req.body.size,
+    req.body.sex,
     req.body.prod_description,
     req.body.image,
-    req.body.price
+    req.body.price,
   ];
     //We use db here to establish connection with the database and post the newly added items
   db.query(q,[values], (err,data) =>{
@@ -102,4 +129,6 @@ app.post("/shoes", (req, res) =>{
 app.listen(8888, () => {
   console.log("connected to backend")
 })
+
+
 
