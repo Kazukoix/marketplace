@@ -11,6 +11,9 @@ import StickyLayout from "./pages_components/StickyLayout";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Account from "./pages/AccountPage";
+import Cart from "./pages/Cart";
+import Womens from "./pages/Womens";
+import SearchResults from "./pages_components/SearchPage";
 
 function App() {
   return (
@@ -20,12 +23,15 @@ function App() {
         <NavBar />
         <Routes>
           <Route path="/" element={<StickyLayout><Shoes /></StickyLayout>} />
+          <Route path="/search" element={<StickyLayout><SearchResults /></StickyLayout>} />
           <Route path="/add" element={<StickyLayout><Add /></StickyLayout>} />
           <Route path="/update/:id" element={<StickyLayout><Update /></StickyLayout>} />
           <Route path="/register" element={<StickyLayout><Register /></StickyLayout>} />
           <Route path="/login" element={<StickyLayout><Login /></StickyLayout>} />
           <Route path="/account" element={<StickyLayout><Account /></StickyLayout>} />
           <Route path="/mens" element={<StickyLayout><Mens /></StickyLayout>} />
+          <Route path="/womens" element={<StickyLayout><Womens /></StickyLayout>} />
+          <Route path="/cart" element={<StickyLayout><Cart /></StickyLayout>} />
           <Route path="/shoe/mens/:id" element={<StickyLayout><ShoePage /></StickyLayout>} />
           <Route path="/account/create" element={<StickyLayout><Register /></StickyLayout>} />
         </Routes>

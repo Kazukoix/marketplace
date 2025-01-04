@@ -4,188 +4,334 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcrypt";
+
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware to parse JSON request bodies
-app.use(express.json()); //Enables parsing incoming requests with JSON payload.
-app.use(cors()); // Enable CORS for all routes (our frontend use uses a different route vs to our backend)
+// Middleware
+app.use(express.json());
+app.use(cors());
 
-//connecting mysql
-const db = mysql.createConnection({
-  host:"localhost",
-  user: "root",
-  password: "root",
-  database: "marketplace"
-
-
-});
-
-const shoeStoreDb = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "root",
-  database: "shoe_store"
-});
-//Requesting and responding from mysql
-app.get("/", (req, res) =>{
-  //response will send a json file to see if we received a request
-  res.json("this is the backend")
-})
-
-//getting the images
-app.use("/images", express.static(path.join(__dirname, "public/product_images")));
-
-//Getting the data from mysql shoes table
-app.get("/shoes", (req, res) =>{
-  //Executing sql statements
-  const q = "SELECT * FROM shoes";
-
-  //Fetching the error and data
-  //We use db here to establish connection with the database
-  db.query(q,(err, data) => {
-    
-    //If there is an error, it would be returned (example if connection isnt sucesfull)
-    if(err) return res.json(err)
-    
-    //If connection is established, the data will be fetched
-    return res.json(data)
-  })
-})
-
-app.get("/shoes/size/:size", (req, res) => {
-  const size = req.params.size;
-  const q = "SELECT * FROM shoes WHERE JSON_CONTAINS(size, ?)";
-  db.query(q, [`"${size}"`], (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
+// Database connection
+  const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "marketplace",
   });
-});
 
-app.get("/shoes/filter/brand", (req, res) => {
-  const { brand } = req.query; // Get the brand filter from query parameters
-  const q = "SELECT * FROM shoes WHERE brand = ?"; // SQL query for filtering by brand
-
-  db.query(q, [brand], (err, data) => {
-    if (err) return res.json(err);
-    return res.json(data);
+  const shoeAccounts = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "shoe_store", // Ensure this matches your schema
   });
-});
 
 
 
-app.delete("/shoes/:id", (req, res) =>{
-  const shoeId = req.params.id;
-  const q= "DELETE FROM shoes WHERE id= ?"
-  db.query(q,[shoeId], (err,data) =>{
-    if(err) return res.json(err);
-    return res.json("Data Deleted!");
-  })
-})
-
-app.put("/shoes/:id", (req, res) => {
-  const shoeId = req.params.id;
-  const q =
-    "UPDATE shoes SET `prod_name`=?, `brand`=?, `size`=?, `sex`=?, `prod_description`=?, `image`=?, `price`=? WHERE id=?";
-  const values = [
-    req.body.prod_name,
-    req.body.brand,
-    req.body.size,
-    req.body.sex,
-    req.body.prod_description,
-    req.body.image,
-    req.body.price,
-  ];
-
-  db.query(q, [...values, shoeId], (err, data) => {
-    if (err) return res.json(err);
-    return res.json("Data Updated!");
-  });
-});
-
-
-//POST FUNCTION = ADDING DATA (USING POSTMAN APP)
-app.post("/shoes", (req, res) =>{
-  console.log("Received POST request:", req.body); // Debugging line
-  const q = "INSERT INTO shoes (`id`, `prod_name`, `brand`, `sex`, `prod_description`, `image`, `price`) VALUES(?)";
-
-  //This request the body and the inside of the body from postman app and gets it to add to the query
-  const values = [
-    req.body.id,
-    req.body.prod_name,
-    req.body.brand,
-    req.body.size,
-    req.body.sex,
-    req.body.prod_description,
-    req.body.image,
-    req.body.price,
-  ];
-    //We use db here to establish connection with the database and post the newly added items
-  db.query(q,[values], (err,data) =>{
-    //If there is an error, it would be returned (example if connection isnt sucesfull)
-    if(err) return res.json(err);
-
-    //If connection is established, the data will be fetched
-    return res.json("Data added!");
-  })
-})
-
-
-app.listen(8888, () => {
-  console.log("connected to backend")
-})
-
-app.post("/register", async (req, res) => {
-  const { first_name, last_name, email, password } = req.body;
-
-  if (!first_name || !last_name || !email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const q = "INSERT INTO accounts (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
-    const values = [first_name, last_name, email, hashedPassword];
-
-    shoeStoreDb.query(q, values, (err, data) => { // Use shoeStoreDb connection here
-      if (err) {
-        if (err.code === "ER_DUP_ENTRY") {
-          return res.status(409).json({ message: "Email already exists" });
-        }
-        return res.status(500).json({ message: "Database error", error: err });
-      }
-      return res.status(201).json({ message: "User registered successfully!" });
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Error hashing password", error });
-  }
-});
-
-
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
-  }
-
-  const q = "SELECT * FROM accounts WHERE email = ?";
-
-  shoeStoreDb.query(q, [email], async (err, data) => {
+  // Test connection
+  db.connect((err) => {
     if (err) {
-      console.error("Database query error:", err); // Log the error
-      return res.status(500).json({ message: "Database error", error: err });
+      console.error("Error connecting to the database:", err);
+      process.exit(1);
+    } else {
+      console.log("Connected to the database. SHOES");
     }
+  });
 
-    if (data.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+  shoeAccounts.connect((err) => {
+    if (err) {
+      console.error("Error connecting to the database:", err);
+      process.exit(1);
+    } else {
+      console.log("Connected to the database. ACCOUNTS");
+    }
+  });
+
+  // Serve images
+  app.use("/images", express.static(path.join(__dirname, "public/product_images")));
+
+  // Routes
+
+  // Root endpoint
+  app.get("/", (req, res) => {
+    res.json("This is the backend");
+  });
+
+
+  app.get("/accounts", (req, res) => {
+    const q = "SELECT * FROM accounts";
+    shoeAccounts.query(q, (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.json(data);
+    });
+  });
+
+  app.get("/shoes", (req, res) => {
+    const { sex, brand, category, size, search } = req.query;
+    let query = "SELECT * FROM shoes";
+    const params = [];
+    
+    // Build WHERE clause dynamically based on provided filters
+    const conditions = [];
+    
+    if (search) {
+      conditions.push("prod_name LIKE ?");
+      params.push(`%${search}%`);
+    }
+    
+    if (sex) {
+      conditions.push("sex = ?");
+      params.push(sex);
+    }
+    
+    if (brand) {
+      conditions.push("brand = ?");
+      params.push(brand);
+    }
+    
+    if (category) {
+      conditions.push("category = ?");
+      params.push(category);
+    }
+  
+    if (size) {
+      conditions.push("JSON_CONTAINS(size, ?)");
+      params.push(`"${size}"`);
+    }
+    
+    // Add WHERE clause if we have any conditions
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+    }
+  
+    db.query(query, params, (err, data) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json(err);
+      }
+      return res.json(data);
+    });
+  });
+  
+  // Keep these other shoe-related endpoints
+  app.get("/shoes/:id", (req, res) => {
+    const { id } = req.params;
+    const q = "SELECT * FROM shoes WHERE id = ?";
+    db.query(q, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      if (data.length === 0) return res.status(404).json({ message: "Shoe not found" });
+      return res.json(data[0]);
+    });
+  });
+  
+  app.post("/shoes", (req, res) => {
+    const q =
+      "INSERT INTO shoes (prod_name, brand, size, sex, prod_description, image, price) VALUES (?)";
+    const values = [
+      req.body.prod_name,
+      req.body.brand,
+      req.body.size,
+      req.body.sex,
+      req.body.prod_description,
+      req.body.image,
+      req.body.price,
+    ];
+    db.query(q, [values], (err) => {
+      if (err) return res.status(500).json(err);
+      return res.status(201).json({ message: "Shoe added successfully!" });
+    });
+  });
+  
+  app.put("/shoes/:id", (req, res) => {
+    const { id } = req.params;
+    const q =
+      "UPDATE shoes SET prod_name=?, brand=?, size=?, sex=?, prod_description=?, image=?, price=? WHERE id=?";
+    const values = [
+      req.body.prod_name,
+      req.body.brand,
+      req.body.size,
+      req.body.sex,
+      req.body.prod_description,
+      req.body.image,
+      req.body.price,
+    ];
+    db.query(q, [...values, id], (err) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json({ message: "Shoe updated successfully!" });
+    });
+  });
+  
+  app.delete("/shoes/:id", (req, res) => {
+    const { id } = req.params;
+    const q = "DELETE FROM shoes WHERE id = ?";
+    db.query(q, [id], (err) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json({ message: "Shoe deleted successfully!" });
+    });
+  });
+
+  app.get("/top-picks", (req, res) => {
+    const q = "SELECT * FROM shoes ORDER BY RAND() LIMIT 5";
+    db.query(q, (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.json(data);
+    });
+  });
+
+  app.get("/shoes", (req, res) => {
+    const { search } = req.query;
+    let query = "SELECT * FROM shoes";
+    const params = [];
+  
+    if (search) {
+      query += " WHERE prod_name LIKE ?";
+      params.push(`%${search}%`);
+    }
+  
+    db.query(query, params, (err, data) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json(err);
+      }
+      return res.json(data);
+    });
+  });
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Cart endpoints
+  app.post("/cart", (req, res) => {
+    const { userId, shoeId, quantity } = req.body;
+    const q = `
+      INSERT INTO cart (user_id, shoe_id, quantity)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)
+    `;
+    db.query(q, [userId, shoeId, quantity], (err) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json({ message: "Item added to cart!" });
+    });
+  });
+
+  app.get("/cart/:userId", (req, res) => {
+    const { userId } = req.params;
+    const q = `
+      SELECT c.id as cart_id, c.quantity, s.*
+      FROM cart c
+      JOIN shoes s ON c.shoe_id = s.id
+      WHERE c.user_id = ?
+    `;
+    db.query(q, [userId], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json(data);
+    });
+  });
+
+  app.put("/cart/:cartId", (req, res) => {
+    const { cartId } = req.params;
+    const { quantity } = req.body;
+    const q = "UPDATE cart SET quantity = ? WHERE id = ?";
+    db.query(q, [quantity, cartId], (err) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json({ message: "Quantity updated successfully!" });
+    });
+  });
+
+  app.delete("/cart/:cartId", (req, res) => {
+    const { cartId } = req.params;
+    const q = "DELETE FROM cart WHERE id = ?";
+    db.query(q, [cartId], (err) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).json({ message: "Item removed from cart!" });
+    });
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Authentication endpoints
+  app.post("/register", async (req, res) => {
+    const { first_name, last_name, email, password } = req.body;
+
+    // Validate input fields
+    if (!first_name || !last_name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Insert into the database
+      const query = "INSERT INTO shoe_store.accounts (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
+      const values = [first_name, last_name, email, hashedPassword];
+
+      shoeAccounts.query(query, values, (err, result) => {
+        if (err) {
+          console.error("Database error:", err);
+          if (err.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({ message: "Email already exists" });
+          }
+          return res.status(500).json({ message: "Database error" });
+        }
+        return res.status(201).json({ message: "User registered successfully!" });
+      });
+    } catch (error) {
+      console.error("Error during registration:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const q = "SELECT * FROM accounts WHERE email = ?";
+    shoeAccounts.query(q, [email], async (err, data) => {
+      if (err) return res.status(500).json(err);
+      if (data.length === 0) return res.status(404).json({ message: "User not found" });
+
       const user = data[0];
       const isPasswordValid = await bcrypt.compare(password, user.password);
-
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -194,9 +340,11 @@ app.post("/login", (req, res) => {
         message: "Login successful",
         user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email },
       });
-    } catch (error) {
-      console.error("Password comparison error:", error); // Log bcrypt error
-      return res.status(500).json({ message: "Internal server error", error });
-    }
+    });
   });
+
+
+// Start server
+app.listen(8888, () => {
+  console.log("Connected to backend on port 8888");
 });

@@ -17,11 +17,10 @@ const Register = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Send the form data to the backend
       const response = await axios.post("http://localhost:8888/register", formData);
       setSuccessMessage(response.data.message);
       setErrorMessage("");
@@ -34,7 +33,7 @@ const Register = () => {
   return (
     <main>
       <div>
-        <h2>Create Account</h2>
+        <h2>Register</h2>
         <form className="container" onSubmit={handleSubmit}>
           <div className="input-row">
             <input
@@ -77,8 +76,7 @@ const Register = () => {
             />
           </div>
           <div className="input-row">
-            <button type="submit">Create</button>
-            <a href="/login" className="register-link" title="login"><p>Already have an account?</p></a>
+            <button type="submit">Register</button>
           </div>
         </form>
         {errorMessage && <p className="error">{errorMessage}</p>}

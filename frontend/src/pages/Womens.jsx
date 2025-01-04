@@ -4,7 +4,7 @@ import axios from "axios";
 import UserContext from "../contexts/UserContext";
 import "../css/content.styled.css";
 
-const Mens = () => {
+const Womens = () => {
   const { user } = useContext(UserContext);
   const [shoes, setShoes] = useState([]);
   const [sortedShoes, setSortedShoes] = useState([]);
@@ -12,21 +12,21 @@ const Mens = () => {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const navigate = useNavigate();
 
-  // Fetch all men's shoes
-  const fetchMensShoes = async () => {
+  // Fetch all women's shoes
+  const fetchWomensShoes = async () => {
     try {
-      const res = await axios.get("http://localhost:8888/shoes?sex=Male");
+      const res = await axios.get("http://localhost:8888/shoes?sex=Female");
       setShoes(res.data);
       setSortedShoes(res.data);
     } catch (err) {
-      console.error("Error fetching men's shoes:", err);
+      console.error("Error fetching women's shoes:", err);
     }
   };
 
-  // Updated function to fetch shoes by brand
+  // Fetch women's shoes by brand
   const fetchShoesByBrand = async (brand) => {
     try {
-      const res = await axios.get(`http://localhost:8888/shoes?brand=${brand}&sex=Male`);
+      const res = await axios.get(`http://localhost:8888/shoes?brand=${brand}&sex=Female`);
       setShoes(res.data);
       setSortedShoes(res.data);
     } catch (err) {
@@ -44,12 +44,12 @@ const Mens = () => {
     
     try {
       if (updatedSizes.length === 0) {
-        // If no sizes selected, fetch all men's shoes
-        fetchMensShoes();
+        // If no sizes selected, fetch all women's shoes
+        fetchWomensShoes();
       } else {
         // Fetch shoes with the selected size
         const sizeQueries = updatedSizes.map(s => `size=${s}`).join('&');
-        const res = await axios.get(`http://localhost:8888/shoes?sex=Male&${sizeQueries}`);
+        const res = await axios.get(`http://localhost:8888/shoes?sex=Female&${sizeQueries}`);
         setShoes(res.data);
         setSortedShoes(res.data);
       }
@@ -58,7 +58,7 @@ const Mens = () => {
     }
   };
 
-  // Sorting logic remains the same
+  // Sorting logic
   useEffect(() => {
     const sortShoes = () => {
       let sorted = [...shoes];
@@ -84,25 +84,25 @@ const Mens = () => {
   }, [sortOption, shoes]);
 
   useEffect(() => {
-    fetchMensShoes();
+    fetchWomensShoes();
   }, []);
 
   const handleShoeClick = (id) => {
-    navigate(`/shoe/mens/${id}`);
+    navigate(`/shoe/womens/${id}`);
   };
 
   return (
     <main>
       <div className="content">
-        <h1>Men Shoes</h1>
+        <h1>Women Shoes</h1>
         <nav className="bread-crumb">
           <a href="/" className="home-link" title="Home">Home</a>
           <span aria-hidden="true">›</span>
-          <span>Men</span>
+          <span>Women</span>
         </nav>
       </div>
       <div className="page-name">
-        <p>Men</p>
+        <p>Women</p>
       </div>
       <div className="container">
         <div className="content-2">
@@ -124,7 +124,7 @@ const Mens = () => {
             <div className="filter">
               <ul>
                 <li>
-                  <button onClick={fetchMensShoes}>All</button>
+                  <button onClick={fetchWomensShoes}>All</button>
                 </li>
                 <li>
                   <button onClick={() => fetchShoesByBrand("nike")}>Nike</button>
@@ -191,4 +191,4 @@ const Mens = () => {
   );
 };
 
-export default Mens;
+export default Womens;

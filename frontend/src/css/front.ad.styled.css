@@ -10,5 +10,5 @@
 .sole-box {
   max-width: 100%;         /* Ensures the image doesn't overflow */
   height: auto;            /* Maintains the image's aspect ratio */
-  object-fit: contain;     /* Adjusts the image withou*/
+  object-fit: contain;     /* Adjusts the image without*/
 }

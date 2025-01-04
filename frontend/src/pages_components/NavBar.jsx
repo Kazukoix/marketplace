@@ -13,7 +13,7 @@ const NavBar = () =>{
     <div className="nav-bar">
       <ul className="nav-list">
         <li><a href="http://localhost:3000/mens" target="_self" rel="noopener noreferrer">MEN</a></li>
-        <li><a href="http://localhost:3000" target="_self" rel="noopener noreferrer">WOMEN</a></li>
+        <li><a href="http://localhost:3000/womens" target="_self" rel="noopener noreferrer">WOMEN</a></li>
         <li><a href="http://localhost:3000" target="_self" rel="noopener noreferrer">KIDS</a></li>
         <li><a href="http://localhost:3000" target="_self" rel="noopener noreferrer">SALES</a></li>
         <li><a href="http://localhost:3000" target="_self" rel="noopener noreferrer">RELEASE</a></li>

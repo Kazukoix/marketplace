@@ -1,55 +1,44 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import UserContext from "../contexts/UserContext";
 import "../css/content.styled.css";
 
-const Mens = () => {
-  const { user } = useContext(UserContext);
+const SearchResults = () => {
+  const [searchParams] = useSearchParams();
   const [shoes, setShoes] = useState([]);
   const [sortedShoes, setSortedShoes] = useState([]);
   const [sortOption, setSortOption] = useState("best-selling");
   const [selectedSizes, setSelectedSizes] = useState([]);
   const navigate = useNavigate();
+  const query = searchParams.get("query");
 
-  // Fetch all men's shoes
-  const fetchMensShoes = async () => {
+  // Fetch shoes based on search query
+  const fetchSearchResults = async () => {
     try {
-      const res = await axios.get("http://localhost:8888/shoes?sex=Male");
+      const res = await axios.get(`http://localhost:8888/shoes?search=${query}`);
       setShoes(res.data);
       setSortedShoes(res.data);
     } catch (err) {
-      console.error("Error fetching men's shoes:", err);
+      console.error("Error fetching search results:", err);
     }
   };
 
-  // Updated function to fetch shoes by brand
-  const fetchShoesByBrand = async (brand) => {
-    try {
-      const res = await axios.get(`http://localhost:8888/shoes?brand=${brand}&sex=Male`);
-      setShoes(res.data);
-      setSortedShoes(res.data);
-    } catch (err) {
-      console.error("Error filtering shoes by brand:", err);
-    }
-  };
-
-  // Updated size filter toggle
+  // Size filter logic
   const toggleSizeFilter = async (size) => {
     const updatedSizes = selectedSizes.includes(size)
       ? selectedSizes.filter((s) => s !== size)
       : [...selectedSizes, size];
-    
+
     setSelectedSizes(updatedSizes);
-    
+
     try {
       if (updatedSizes.length === 0) {
-        // If no sizes selected, fetch all men's shoes
-        fetchMensShoes();
+        fetchSearchResults();
       } else {
-        // Fetch shoes with the selected size
-        const sizeQueries = updatedSizes.map(s => `size=${s}`).join('&');
-        const res = await axios.get(`http://localhost:8888/shoes?sex=Male&${sizeQueries}`);
+        const sizeQueries = updatedSizes.map((s) => `size=${s}`).join("&");
+        const res = await axios.get(
+          `http://localhost:8888/shoes?search=${query}&${sizeQueries}`
+        );
         setShoes(res.data);
         setSortedShoes(res.data);
       }
@@ -58,7 +47,7 @@ const Mens = () => {
     }
   };
 
-  // Sorting logic remains the same
+  // Sorting logic
   useEffect(() => {
     const sortShoes = () => {
       let sorted = [...shoes];
@@ -83,26 +72,29 @@ const Mens = () => {
     sortShoes();
   }, [sortOption, shoes]);
 
+  // Fetch search results on initial render
   useEffect(() => {
-    fetchMensShoes();
-  }, []);
+    fetchSearchResults();
+  }, [query]);
 
   const handleShoeClick = (id) => {
-    navigate(`/shoe/mens/${id}`);
+    navigate(`/shoe/${id}`);
   };
 
   return (
     <main>
       <div className="content">
-        <h1>Men Shoes</h1>
+        <h1>Search Results</h1>
         <nav className="bread-crumb">
-          <a href="/" className="home-link" title="Home">Home</a>
+          <a href="/" className="home-link" title="Home">
+            Home
+          </a>
           <span aria-hidden="true">›</span>
-          <span>Men</span>
+          <span>Search</span>
         </nav>
       </div>
       <div className="page-name">
-        <p>Men</p>
+        <p>Results for "{query}"</p>
       </div>
       <div className="container">
         <div className="content-2">
@@ -119,33 +111,6 @@ const Mens = () => {
               <option value="price-ascending">Price, Low to High</option>
               <option value="price-descending">Price, High to Low</option>
             </select>
-
-            <h4>Brands</h4>
-            <div className="filter">
-              <ul>
-                <li>
-                  <button onClick={fetchMensShoes}>All</button>
-                </li>
-                <li>
-                  <button onClick={() => fetchShoesByBrand("nike")}>Nike</button>
-                </li>
-                <li>
-                  <button onClick={() => fetchShoesByBrand("adidas")}>Adidas</button>
-                </li>
-                <li>
-                  <button onClick={() => fetchShoesByBrand("nb")}>New Balance</button>
-                </li>
-                <li>
-                  <button onClick={() => fetchShoesByBrand("puma")}>Puma</button>
-                </li>
-                <li>
-                  <button onClick={() => fetchShoesByBrand("vans")}>Vans</button>
-                </li>
-                <li>
-                  <button onClick={() => fetchShoesByBrand("asics")}>Asics</button>
-                </li>
-              </ul>
-            </div>
 
             <h4>Size</h4>
             <div className="filter">
@@ -169,21 +134,25 @@ const Mens = () => {
 
         <div className="shoes-container">
           <div className="shoes-wrapper">
-            {sortedShoes.map((shoe) => (
-              <div
-                key={shoe.id}
-                className="shoe-display"
-                onClick={() => handleShoeClick(shoe.id)}
-              >
-                <img
-                  className="shoe-image"
-                  src={`http://localhost:8888/images/${JSON.parse(shoe.image)[0]}`}
-                  alt={shoe.prod_name}
-                />
-                <p>{shoe.prod_name}</p>
-                <p>&#8369;{shoe.price}</p>
-              </div>
-            ))}
+            {sortedShoes.length > 0 ? (
+              sortedShoes.map((shoe) => (
+                <div
+                  key={shoe.id}
+                  className="shoe-display"
+                  onClick={() => handleShoeClick(shoe.id)}
+                >
+                  <img
+                    className="shoe-image"
+                    src={`http://localhost:8888/images/${JSON.parse(shoe.image)[0]}`}
+                    alt={shoe.prod_name}
+                  />
+                  <p>{shoe.prod_name}</p>
+                  <p>&#8369;{shoe.price}</p>
+                </div>
+              ))
+            ) : (
+              <p>No results found for "{query}".</p>
+            )}
           </div>
         </div>
       </div>
@@ -191,4 +160,4 @@ const Mens = () => {
   );
 };
 
-export default Mens;
+export default SearchResults;
