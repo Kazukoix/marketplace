@@ -1,30 +1,41 @@
-import { useState } from "react";
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import UserContext from "../contexts/UserContext"; // Fixed path
 import "../css/register.styled.css";
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-  });
-
+const Login = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const { setUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "confirm_password") {
+      setConfirmPassword(value);
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      setSuccessMessage("");
+      return;
+    }
+
     try {
-      // Send the form data to the backend
-      const response = await axios.post("http://localhost:8888/register", formData);
+      const response = await axios.post("http://localhost:8888/login", formData);
       setSuccessMessage(response.data.message);
       setErrorMessage("");
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setUser(response.data.user); // Update global user state
+      navigate("/");
     } catch (error) {
       setErrorMessage(error.response?.data?.message || "An error occurred");
       setSuccessMessage("");
@@ -34,28 +45,8 @@ const Register = () => {
   return (
     <main>
       <div>
-        <h2>Create Account</h2>
+        <h2>Login Account</h2>
         <form className="container" onSubmit={handleSubmit}>
-          <div className="input-row">
-            <input
-              type="text"
-              name="first_name"
-              placeholder="First Name"
-              value={formData.first_name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="input-row">
-            <input
-              type="text"
-              name="last_name"
-              placeholder="Last Name"
-              value={formData.last_name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
           <div className="input-row">
             <input
               type="email"
@@ -77,8 +68,17 @@ const Register = () => {
             />
           </div>
           <div className="input-row">
-            <button type="submit">Create</button>
-            <a href="/login" className="register-link" title="login"><p>Already have an account?</p></a>
+            <input
+              type="password"
+              name="confirm_password"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="input-row">
+            <button type="submit">Login</button>
           </div>
         </form>
         {errorMessage && <p className="error">{errorMessage}</p>}
@@ -88,4 +88,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-
+import ShowCase from '../pages_components/Front.ad';
+import TopPicks from '../pages_components/TopPicksComp';
 const Shoes = () => {
   const [shoes, setShoes] = useState([]);
 
@@ -28,6 +29,8 @@ const Shoes = () => {
 
   return (
     <div>
+      <ShowCase/>
+      <TopPicks/>
       <h1>MarketPlace</h1>
       <div className="shoes">
         {shoes.map((shoe) => {

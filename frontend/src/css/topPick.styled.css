@@ -1,6 +1,12 @@
 div{
   margin: 0px;
 }
+
+.whole{
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
 *{
   margin: 0px;
   padding: 0px;

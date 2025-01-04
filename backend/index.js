@@ -3,6 +3,7 @@ import mysql from "mysql";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import bcrypt from "bcrypt";
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +20,13 @@ const db = mysql.createConnection({
   database: "marketplace"
 
 
+});
+
+const shoeStoreDb = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "root",
+  database: "shoe_store"
 });
 //Requesting and responding from mysql
 app.get("/", (req, res) =>{
@@ -124,11 +132,71 @@ app.post("/shoes", (req, res) =>{
 })
 
 
-
-
 app.listen(8888, () => {
   console.log("connected to backend")
 })
 
+app.post("/register", async (req, res) => {
+  const { first_name, last_name, email, password } = req.body;
+
+  if (!first_name || !last_name || !email || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const q = "INSERT INTO accounts (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
+    const values = [first_name, last_name, email, hashedPassword];
+
+    shoeStoreDb.query(q, values, (err, data) => { // Use shoeStoreDb connection here
+      if (err) {
+        if (err.code === "ER_DUP_ENTRY") {
+          return res.status(409).json({ message: "Email already exists" });
+        }
+        return res.status(500).json({ message: "Database error", error: err });
+      }
+      return res.status(201).json({ message: "User registered successfully!" });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error hashing password", error });
+  }
+});
 
 
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  const q = "SELECT * FROM accounts WHERE email = ?";
+
+  shoeStoreDb.query(q, [email], async (err, data) => {
+    if (err) {
+      console.error("Database query error:", err); // Log the error
+      return res.status(500).json({ message: "Database error", error: err });
+    }
+
+    if (data.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    try {
+      const user = data[0];
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      return res.status(200).json({
+        message: "Login successful",
+        user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email },
+      });
+    } catch (error) {
+      console.error("Password comparison error:", error); // Log bcrypt error
+      return res.status(500).json({ message: "Internal server error", error });
+    }
+  });
+});

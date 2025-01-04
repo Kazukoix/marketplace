@@ -5,7 +5,7 @@
   text-align: center;
   padding: 50px 20px;
   /* Sticky footer settings */
-  margin-top: auto;
+  margin-top: 100px;
 }
 
 /* Footer Container */
@@ -21,7 +21,8 @@
 .footer-wrapper .footer-section {
   flex: 1;
   min-width: 200px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  justify-content: left;
 }
 
 .footer-wrapper .footer-section h4 {
@@ -46,3 +47,16 @@
   margin-top: 20px;
   padding-top: 10px;
 }
+
+
+.footer-list{
+  list-style: none;
+}
+
+.footer-wrapper .footer-list {
+  list-style: none;
+  text-align: left; /* Align text to the left */
+  padding: 0;
+  margin: 0px 60px;
+}
+

@@ -1,0 +1,56 @@
+/* General styles */
+.account-container {
+  padding: 20px;
+}
+
+.bread-crumb {
+  margin-bottom: 20px;
+}
+
+.bread-crumb a {
+  text-decoration: none;
+  color: #333;
+}
+
+/* Account Wrapper */
+.account-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
+/* Left Menu */
+.account-menu {
+  flex: 1;
+  border-right: 1px solid #ccc;
+  padding-right: 20px;
+}
+
+.account-menu p {
+  cursor: pointer;
+  margin-bottom: 15px;
+  font-weight: bold;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.account-menu p:hover {
+  color: #f9a825;
+}
+
+.account-menu .active {
+  text-decoration: underline;
+}
+
+/* Right Content */
+.account-content {
+  flex: 2;
+}
+
+.account-details,
+.order-history,
+.addresses,
+.logout {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 5px;
+}

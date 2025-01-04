@@ -32,9 +32,8 @@ a{
   height: auto;
   align-items: center;
   flex-direction: column;
-  width: 80;
   align-content: center;
-  margin: 0px 50px;
+
 }
 
 
@@ -49,6 +48,7 @@ a{
   align-items: flex-start; /* Align items to the top */
   width: 100%; /* Ensure it takes the full width of the parent */
   gap:20px;
+  flex-direction: row;
 }
 
 .side-bar {
@@ -107,7 +107,7 @@ a{
   background: none;
   border: none;
   color: blue;
-  textDecoration: underline;
+  text-decoration: underline;
   cursor: pointer;
   padding: 0;
 }

@@ -41,7 +41,7 @@ const TopPicks = () => {
 
   return (
     //This will print out the data from the database using DOM
-    <div>
+    <div className="whole">
       <div className="top-picks-divider">
         <h2 className="divider"><span>THIS IS A TEST</span></h2>
       </div>
