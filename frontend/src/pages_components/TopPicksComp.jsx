@@ -6,7 +6,6 @@ import 'swiper/css/bundle';
 const TopPicks = () => {
   const [topPicks, setTopPicks] = useState([]);
 
-  // Fetch top picks from the backend
   useEffect(() => {
     const fetchTopPicks = async () => {
       try {
@@ -21,37 +20,38 @@ const TopPicks = () => {
     fetchTopPicks();
   }, []);
 
-  // Initialize Swiper
   useEffect(() => {
-    const swiper = new Swiper(".card-wrapper", {
-      loop: true,
-      spaceBetween: 30,
-      pagination: {
-        el: ".swiper-pagination",
-        clickable: true,
-        dynamicBullets: true,
-      },
-      navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev",
-      },
-      breakpoints: {
-        0: {
-          slidesPerView: 1,
+    if (topPicks.length > 0) {
+      const swiper = new Swiper(".top-picks-wrapper", {
+        loop: true,
+        spaceBetween: 30,
+        pagination: {
+          el: ".top-picks-pagination",
+          clickable: true,
+          dynamicBullets: true,
         },
-        764: {
-          slidesPerView: 2,
+        navigation: {
+          nextEl: ".top-picks-button-next",
+          prevEl: ".top-picks-button-prev",
         },
-        1024: {
-          slidesPerView: 3,
+        breakpoints: {
+          0: {
+            slidesPerView: 1,
+          },
+          764: {
+            slidesPerView: 2,
+          },
+          1024: {
+            slidesPerView: 3,
+          },
         },
-      },
-    });
+      });
 
-    return () => {
-      if (swiper) swiper.destroy();
-    };
-  }, [topPicks]); // Reinitialize when topPicks changes
+      return () => {
+        swiper?.destroy?.(true, true);
+      };
+    }
+  }, [topPicks]);
 
   return (
     <div className="whole">
@@ -60,12 +60,13 @@ const TopPicks = () => {
       </div>
       <div className="body">
         <div className="container swiper">
-          <div className="card-wrapper">
+          <div className="top-picks-wrapper card-wrapper">
             <ul className="card-list swiper-wrapper">
               {topPicks.map((shoe) => (
                 <li key={shoe.id} className="card-item swiper-slide">
                   <a href={`/shoe/${shoe.id}`} className="card-link">
-                  <img src={`http://localhost:8888/images/${
+                    <img 
+                      src={`http://localhost:8888/images/${
                         Array.isArray(JSON.parse(shoe.image)) 
                         ? JSON.parse(shoe.image)[0] 
                         : ''
@@ -81,9 +82,9 @@ const TopPicks = () => {
               ))}
             </ul>
 
-            <div className="swiper-pagination"></div>
-            <div className="swiper-button-prev"></div>
-            <div className="swiper-button-next"></div>
+            <div className="swiper-pagination top-picks-pagination"></div>
+            <div className="swiper-button-prev top-picks-button-prev"></div>
+            <div className="swiper-button-next top-picks-button-next"></div>
           </div>
         </div>
       </div>

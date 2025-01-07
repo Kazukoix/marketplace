@@ -4,6 +4,9 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -126,51 +129,70 @@ app.use(cors());
     });
   });
   
-  app.post("/shoes", (req, res) => {
-    const q =
-      "INSERT INTO shoes (prod_name, brand, size, sex, prod_description, image, price) VALUES (?)";
+  app.get("/male-picks", (req, res) => {
+    const q = "SELECT * FROM shoes WHERE sex = 'Male' LIMIT 5";
+    db.query(q, (err, data) => {
+      if (err) {
+        console.error("Error fetching male picks:", err);
+        return res.status(500).json(err);
+      }
+      return res.json(data);
+    });
+  });
+
+// Admin Middleware
+const verifyAdmin = (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decodedToken.is_admin) {
+      return res.status(403).json({ message: 'Access denied: Admins only' });
+    }
+
+    req.user = decodedToken; // Attach decoded token to the request
+    next();
+  } catch (err) {
+    console.error('Authorization error:', err);
+    res.status(401).json({ message: 'Unauthorized' });
+  }
+};
+
+// Modified add endpoint
+  app.post("/add", verifyAdmin, (req, res) => {
+    const q = `
+      INSERT INTO shoes 
+      (prod_name, brand, size, sex, prod_description, image, price) 
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    
     const values = [
       req.body.prod_name,
       req.body.brand,
-      req.body.size,
+      req.body.size, // This should now be a JSON string
       req.body.sex,
       req.body.prod_description,
-      req.body.image,
-      req.body.price,
+      req.body.image, // This should now be a JSON string
+      req.body.price
     ];
-    db.query(q, [values], (err) => {
-      if (err) return res.status(500).json(err);
+
+    db.query(q, values, (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ message: 'Failed to add product', error: err.message });
+      }
       return res.status(201).json({ message: "Shoe added successfully!" });
     });
   });
-  
-  app.put("/shoes/:id", (req, res) => {
-    const { id } = req.params;
-    const q =
-      "UPDATE shoes SET prod_name=?, brand=?, size=?, sex=?, prod_description=?, image=?, price=? WHERE id=?";
-    const values = [
-      req.body.prod_name,
-      req.body.brand,
-      req.body.size,
-      req.body.sex,
-      req.body.prod_description,
-      req.body.image,
-      req.body.price,
-    ];
-    db.query(q, [...values, id], (err) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json({ message: "Shoe updated successfully!" });
+    
+    app.delete("/shoes/:id", (req, res) => {
+      const { id } = req.params;
+      const q = "DELETE FROM shoes WHERE id = ?";
+      db.query(q, [id], (err) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json({ message: "Shoe deleted successfully!" });
+      });
     });
-  });
-  
-  app.delete("/shoes/:id", (req, res) => {
-    const { id } = req.params;
-    const q = "DELETE FROM shoes WHERE id = ?";
-    db.query(q, [id], (err) => {
-      if (err) return res.status(500).json(err);
-      return res.status(200).json({ message: "Shoe deleted successfully!" });
-    });
-  });
 
   app.get("/top-picks", (req, res) => {
     const q = "SELECT * FROM shoes ORDER BY RAND() LIMIT 5";
@@ -199,29 +221,6 @@ app.use(cors());
     });
   });
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // Cart endpoints
   app.post("/cart", (req, res) => {
     const { userId, shoeId, quantity } = req.body;
@@ -269,22 +268,6 @@ app.use(cors());
     });
   });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Authentication endpoints
   app.post("/register", async (req, res) => {
     const { first_name, last_name, email, password } = req.body;
@@ -318,33 +301,155 @@ app.use(cors());
     }
   });
 
-  app.post("/login", (req, res) => {
-    const { email, password } = req.body;
+  // Add this endpoint to your backend code
+app.post("/create-admin", verifyAdmin, async (req, res) => {
+  const { first_name, last_name, email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+  try {
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert admin user
+    const query = "INSERT INTO shoe_store.accounts (first_name, last_name, email, password, is_admin) VALUES (?, ?, ?, ?, TRUE)";
+    const values = [first_name, last_name, email, hashedPassword];
+
+    shoeAccounts.query(query, values, (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        if (err.code === "ER_DUP_ENTRY") {
+          return res.status(409).json({ message: "Email already exists" });
+        }
+        return res.status(500).json({ message: "Database error" });
+      }
+      return res.status(201).json({ message: "Admin user created successfully!" });
+    });
+  } catch (error) {
+    console.error("Error creating admin:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Modified login endpoint
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  const q = "SELECT * FROM accounts WHERE email = ?";
+  shoeAccounts.query(q, [email], async (err, data) => {
+    if (err) return res.status(500).json(err);
+    if (data.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const user = data[0];
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const q = "SELECT * FROM accounts WHERE email = ?";
-    shoeAccounts.query(q, [email], async (err, data) => {
-      if (err) return res.status(500).json(err);
-      if (data.length === 0) return res.status(404).json({ message: "User not found" });
+    // Create JWT token
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        email: user.email,
+        is_admin: user.is_admin 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
-      const user = data[0];
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      return res.status(200).json({
-        message: "Login successful",
-        user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email },
-      });
+    return res.status(200).json({
+      message: "Login successful",
+      user: { 
+        id: user.id, 
+        first_name: user.first_name, 
+        last_name: user.last_name, 
+        email: user.email,
+        is_admin: user.is_admin 
+      },
+      token
     });
   });
+});
 
 
 // Start server
 app.listen(8888, () => {
   console.log("Connected to backend on port 8888");
+});
+
+
+app.post("/orders", async (req, res) => {
+  const { user_id, cart_items, total_amount } = req.body;
+
+  db.beginTransaction(async (err) => {
+    if (err) {
+      return res.status(500).json({ message: "Transaction error" });
+    }
+
+    try {
+      // Create the order
+      const orderQuery = "INSERT INTO orders (user_id, total_amount) VALUES (?, ?)";
+      db.query(orderQuery, [user_id, total_amount], (err, orderResult) => {
+        if (err) throw err;
+
+        const order_id = orderResult.insertId;
+
+        // Insert order items
+        const itemPromises = cart_items.map((item) => {
+          return new Promise((resolve, reject) => {
+            const itemQuery = "INSERT INTO order_items (order_id, shoe_id, quantity, price_at_time) VALUES (?, ?, ?, ?)";
+            db.query(itemQuery, [order_id, item.id, item.quantity, item.price], (err) => {
+              if (err) reject(err);
+              resolve();
+            });
+          });
+        });
+
+        Promise.all(itemPromises)
+          .then(() => {
+            // Clear the user's cart
+            const clearCartQuery = "DELETE FROM cart WHERE user_id = ?";
+            db.query(clearCartQuery, [user_id], (err) => {
+              if (err) throw err;
+
+              db.commit((err) => {
+                if (err) throw err;
+                res.status(201).json({ 
+                  message: "Order created successfully",
+                  order_id: order_id
+                });
+              });
+            });
+          })
+          .catch((err) => {
+            throw err;
+          });
+      });
+    } catch (error) {
+      db.rollback(() => {
+        console.error("Error creating order:", error);
+        res.status(500).json({ message: "Failed to create order" });
+      });
+    }
+  });
+});
+
+
+app.get("/orders/:id", (req, res) => {
+  const { id } = req.params;
+  const orderQuery = `
+    SELECT o.*, oi.*, s.prod_name, s.brand
+    FROM orders o
+    JOIN order_items oi ON o.id = oi.order_id
+    JOIN shoes s ON oi.shoe_id = s.id
+    WHERE o.id = ?
+  `;
+  
+  db.query(orderQuery, [id], (err, data) => {
+    if (err) return res.status(500).json(err);
+    if (data.length === 0) return res.status(404).json({ message: "Order not found" });
+    return res.json(data);
+  });
 });

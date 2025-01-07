@@ -6,9 +6,10 @@ import "../css/register.styled.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setError] = useState("");
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
+  const { login } = useContext(UserContext);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -17,15 +18,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post("http://localhost:8888/login", formData);
-      setErrorMessage("");
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      setUser(response.data.user);
+      login(response.data.user, response.data.token);
       navigate("/");
-    } catch (error) {
-      setErrorMessage(error.response?.data?.message || "An error occurred");
+    } catch (err) {
+      setError(err.response?.data?.message || "An error occurred");
     }
   };
 
