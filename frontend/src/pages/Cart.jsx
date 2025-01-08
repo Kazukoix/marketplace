@@ -25,19 +25,10 @@ const Cart = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const handleCheckout = async () => {
-    try {
-      const response = await axios.post('http://localhost:8888/orders', {
-        user_id: user.id,
-        cart_items: cartItems,
-        total_amount: calculateTotal()
-      });
 
-      // Navigate to order summary page
-      navigate(`/order-summary/${response.data.order_id}`);
-    } catch (err) {
-      console.error("Error creating order:", err);
-    }
+  const handleCheckout = () => {
+    localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
+    window.location.href = '/checkout';
   };
 
   const handleQuantityChange = async (cartItemId, newQuantity) => {
@@ -78,8 +69,10 @@ const Cart = () => {
         <div className="cart-total">
           <h3>Total: ₱{calculateTotal()}</h3>
         </div>
-        <button  className="checkout-button" onClick={handleCheckout} disabled={cartItems.length === 0}>Checkout</button>
-      </div>  
+        <button className="checkout-button"onClick={handleCheckout}disabled={cartItems.length === 0}>
+          Checkout
+        </button>
+      </div>
     </main>
   );
 };

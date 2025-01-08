@@ -16,6 +16,7 @@ import SearchResults from "./pages_components/SearchPage";
 import Add from "./pages/Add";
 import CreateAdmin from "./pages/CreateAdmin";
 import OrderSummary from "./pages/OrderSummary";
+import CheckoutForm from "./pages/CheckOutForm";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/cart" element={<StickyLayout><Cart /></StickyLayout>} />
           <Route path="/shoe/mens/:id" element={<StickyLayout><ShoePage /></StickyLayout>} />
           <Route path="/account/create" element={<StickyLayout><Register /></StickyLayout>} />
+          <Route path="/checkout" element={<StickyLayout><CheckoutForm /></StickyLayout>} />
           <Route path="/order-summary/:orderId" element={<StickyLayout><OrderSummary /></StickyLayout>} />
         </Routes>
       </BrowserRouter>

@@ -381,7 +381,17 @@ app.listen(8888, () => {
 
 
 app.post("/orders", async (req, res) => {
-  const { user_id, cart_items, total_amount } = req.body;
+  const { 
+    user_id, 
+    cart_items, 
+    total_amount,
+    address,
+    phone_number,
+    email,
+    delivery_date,
+    shipping_method,
+    shipping_fee
+  } = req.body;
 
   db.beginTransaction(async (err) => {
     if (err) {
@@ -389,14 +399,35 @@ app.post("/orders", async (req, res) => {
     }
 
     try {
-      // Create the order
-      const orderQuery = "INSERT INTO orders (user_id, total_amount) VALUES (?, ?)";
-      db.query(orderQuery, [user_id, total_amount], (err, orderResult) => {
+      // Create the order with shipping details
+      const orderQuery = `
+        INSERT INTO orders (
+          user_id, 
+          total_amount, 
+          address, 
+          phone_number, 
+          email, 
+          delivery_date,
+          shipping_method,
+          shipping_fee
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      
+      db.query(orderQuery, [
+        user_id, 
+        total_amount, 
+        address,
+        phone_number,
+        email,
+        delivery_date,
+        shipping_method,
+        shipping_fee
+      ], (err, orderResult) => {
         if (err) throw err;
 
         const order_id = orderResult.insertId;
 
-        // Insert order items
+        // Insert order items (same as before)
         const itemPromises = cart_items.map((item) => {
           return new Promise((resolve, reject) => {
             const itemQuery = "INSERT INTO order_items (order_id, shoe_id, quantity, price_at_time) VALUES (?, ?, ?, ?)";
