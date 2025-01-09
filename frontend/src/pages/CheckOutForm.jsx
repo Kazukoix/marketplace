@@ -80,11 +80,12 @@ const CheckoutForm = () => {
       setError('Your cart is empty');
       return;
     }
-
+  
     setIsSubmitting(true);
     setError('');
-
+  
     try {
+      console.log('Submitting order...');
       const orderData = {
         user_id: user.id,
         cart_items: cartItems,
@@ -96,16 +97,18 @@ const CheckoutForm = () => {
         shipping_method: formData.shipping_method,
         shipping_fee: getShippingFee(formData.shipping_method)
       };
-
-      // Add timeout to the axios request
+  
+      console.log('Order data:', orderData);
+  
       const response = await axios.post('http://localhost:8888/orders', orderData, {
-        timeout: 5000, // 5 second timeout
+        timeout: 10000, // 10 second timeout
         headers: {
           'Content-Type': 'application/json',
-          // Add authorization header if you're using JWT
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
+      
+      console.log('Server response:', response.data);
       
       if (response.data.order_id) {
         localStorage.removeItem('checkoutItems');
@@ -114,9 +117,17 @@ const CheckoutForm = () => {
         throw new Error('No order ID received from server');
       }
     } catch (err) {
-      console.error('Error creating order:', err);
+      console.error('Error creating order:', {
+        message: err.message,
+        code: err.code,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+  
       if (err.code === 'ECONNREFUSED') {
-        setError('Unable to connect to the server. Please ensure the server is running.');
+        setError('Cannot connect to server. Please ensure the server is running.');
+      } else if (err.code === 'ETIMEDOUT') {
+        setError('Server request timed out. Please try again.');
       } else if (err.response) {
         setError(err.response.data.message || 'Failed to create order. Please try again.');
       } else if (err.request) {

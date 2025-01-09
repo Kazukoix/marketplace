@@ -25,7 +25,6 @@ const Cart = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-
   const handleCheckout = () => {
     localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
     window.location.href = '/checkout';
@@ -51,15 +50,34 @@ const Cart = () => {
     }
   };
 
+  const getFirstImage = (imageString) => {
+    try {
+      const images = JSON.parse(imageString);
+      return images[0] || '';
+    } catch (err) {
+      console.error("Error parsing image JSON:", err);
+      return '';
+    }
+  };
+
   return (
     <main className="account-container">
       {cartItems.map((item) => (
         <div key={item.cart_id} className="cart-item-details">
+          <img 
+            src={`http://localhost:8888/images/${getFirstImage(item.image)}`}
+            alt={item.prod_name}
+            className="cart-item-image"
+            style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+          />
           <div className="product-name">{item.prod_name}</div>
           <div className="product-price">&#8369;{item.price}</div>
           <div className="product-quantity">
             <span>Quantity:</span>
-            <input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.cart_id, Number(e.target.value))}
+            <input 
+              type="number" 
+              value={item.quantity} 
+              onChange={(e) => handleQuantityChange(item.cart_id, Number(e.target.value))}
             />
             <span className="delete-quantity-link" onClick={() => handleDelete(item.cart_id)}> Delete </span>
           </div>
@@ -69,7 +87,11 @@ const Cart = () => {
         <div className="cart-total">
           <h3>Total: ₱{calculateTotal()}</h3>
         </div>
-        <button className="checkout-button"onClick={handleCheckout}disabled={cartItems.length === 0}>
+        <button 
+          className="checkout-button"
+          onClick={handleCheckout}
+          disabled={cartItems.length === 0}
+        >
           Checkout
         </button>
       </div>

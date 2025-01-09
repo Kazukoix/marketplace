@@ -381,25 +381,28 @@ app.listen(8888, () => {
 
 
 app.post("/orders", async (req, res) => {
-  const { 
-    user_id, 
-    cart_items, 
+  const {
+    user_id,
+    cart_items,
     total_amount,
     address,
     phone_number,
     email,
     delivery_date,
     shipping_method,
-    shipping_fee
+    shipping_fee,
   } = req.body;
 
-  db.beginTransaction(async (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Transaction error" });
-    }
+  if (!user_id || !cart_items || !address || !phone_number || !email) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  db.beginTransaction((err) => {
+    if (err) return res.status(500).json({ message: "Transaction error" });
 
     try {
-      // Create the order with shipping details
+      const formattedDate = new Date(delivery_date).toISOString().split("T")[0];
+
       const orderQuery = `
         INSERT INTO orders (
           user_id, 
@@ -412,56 +415,47 @@ app.post("/orders", async (req, res) => {
           shipping_fee
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
-      
-      db.query(orderQuery, [
-        user_id, 
-        total_amount, 
-        address,
-        phone_number,
-        email,
-        delivery_date,
-        shipping_method,
-        shipping_fee
-      ], (err, orderResult) => {
-        if (err) throw err;
 
-        const order_id = orderResult.insertId;
+      db.query(
+        orderQuery,
+        [user_id, total_amount, address, phone_number, email, formattedDate, shipping_method, shipping_fee],
+        (err, orderResult) => {
+          if (err) throw err;
 
-        // Insert order items (same as before)
-        const itemPromises = cart_items.map((item) => {
-          return new Promise((resolve, reject) => {
-            const itemQuery = "INSERT INTO order_items (order_id, shoe_id, quantity, price_at_time) VALUES (?, ?, ?, ?)";
-            db.query(itemQuery, [order_id, item.id, item.quantity, item.price], (err) => {
-              if (err) reject(err);
-              resolve();
-            });
-          });
-        });
-
-        Promise.all(itemPromises)
-          .then(() => {
-            // Clear the user's cart
-            const clearCartQuery = "DELETE FROM cart WHERE user_id = ?";
-            db.query(clearCartQuery, [user_id], (err) => {
-              if (err) throw err;
-
-              db.commit((err) => {
-                if (err) throw err;
-                res.status(201).json({ 
-                  message: "Order created successfully",
-                  order_id: order_id
-                });
+          const order_id = orderResult.insertId;
+          const itemPromises = cart_items.map((item) => {
+            return new Promise((resolve, reject) => {
+              const itemQuery =
+                "INSERT INTO order_items (order_id, shoe_id, quantity, price_at_time) VALUES (?, ?, ?, ?)";
+              db.query(itemQuery, [order_id, item.id, item.quantity, item.price], (err) => {
+                if (err) reject(err);
+                resolve();
               });
             });
-          })
-          .catch((err) => {
-            throw err;
           });
-      });
-    } catch (error) {
+
+          Promise.all(itemPromises)
+            .then(() => {
+              const clearCartQuery = "DELETE FROM cart WHERE user_id = ?";
+              db.query(clearCartQuery, [user_id], (err) => {
+                if (err) throw err;
+
+                db.commit((err) => {
+                  if (err) throw err;
+                  res.status(201).json({ message: "Order created successfully", order_id });
+                });
+              });
+            })
+            .catch((err) => {
+              db.rollback(() => {
+                res.status(500).json({ message: "Failed to create order", error: err.message });
+              });
+            });
+        }
+      );
+    } catch (err) {
       db.rollback(() => {
-        console.error("Error creating order:", error);
-        res.status(500).json({ message: "Failed to create order" });
+        res.status(500).json({ message: "Order creation failed", error: err.message });
       });
     }
   });
@@ -471,7 +465,12 @@ app.post("/orders", async (req, res) => {
 app.get("/orders/:id", (req, res) => {
   const { id } = req.params;
   const orderQuery = `
-    SELECT o.*, oi.*, s.prod_name, s.brand
+    SELECT 
+      o.*,
+      oi.*,
+      s.prod_name,
+      s.brand,
+      s.image  /* Added this line to include the image data */
     FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN shoes s ON oi.shoe_id = s.id
